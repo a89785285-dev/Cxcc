@@ -1,0 +1,124 @@
+/* ==========================================================
+   BLOCK MASTER — main.css
+   Design tokens, reset, screen system
+   ========================================================== */
+
+:root {
+  /* Brand palette */
+  --c-royal: #2456e0;
+  --c-deep: #0a1d63;
+  --c-abyss: #040d2e;
+  --c-sky: #6fd6ff;
+  --c-ice: #dff4ff;
+  --c-white: #ffffff;
+
+  /* Gold / orange action colors */
+  --c-gold-hi: #ffe08a;
+  --c-gold-mid: #ffb52e;
+  --c-gold-lo: #f08a0a;
+  --c-gold-edge: #a85200;
+
+  /* Block colors (used by blocks.css) */
+  --block-yellow: #ffc83a;
+  --block-orange: #ff8a3d;
+  --block-sky: #4fc3f7;
+  --block-purple: #a06bf0;
+  --block-green: #4fd68a;
+  --block-pink: #ff6fb0;
+
+  /* Blue backdrop shared by screens */
+  --bg-royal:
+    radial-gradient(120% 60% at 50% 0%, rgba(170, 230, 255, .42) 0%, rgba(170, 230, 255, 0) 60%),
+    linear-gradient(180deg, #3d82ff 0%, var(--c-royal) 34%, #1638b0 68%, var(--c-deep) 100%);
+
+  /* Safe areas (notches, gesture bars) */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+
+  /* Size unit for decorative cubes; scales with screen width */
+  --cube-unit: clamp(16px, 4.2vw, 30px);
+
+  --font-ui: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --ease-out: cubic-bezier(.22, .9, .3, 1);
+}
+
+/* Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background: var(--c-abyss);
+}
+
+body {
+  overflow: hidden;
+  font-family: var(--font-ui);
+  color: var(--c-white);
+  background: var(--c-abyss);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  overscroll-behavior: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+button:focus-visible {
+  outline: 3px solid var(--c-sky);
+  outline-offset: 4px;
+}
+
+/* App frame: fills the viewport, never scrolls */
+.app {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* Screen system: one active screen at a time, cross-faded */
+.screen {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: scale(1.03);
+  transition:
+    opacity .5s var(--ease-out),
+    transform .5s var(--ease-out),
+    visibility 0s linear .5s;
+}
+
+.screen.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: none;
+  transition:
+    opacity .5s var(--ease-out),
+    transform .5s var(--ease-out),
+    visibility 0s;
+}

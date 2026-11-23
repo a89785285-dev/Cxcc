@@ -1,0 +1,34 @@
+(function(BM){'use strict';
+var SIZE=BM.board.SIZE;
+var state={board:BM.board.empty(),pieces:[],score:0,ended:false,rewarded:false,animating:false};
+var boardEl,trayEl,scoreEl,bestEl,messageEl,boardCells=[];
+function fmt(n){return Math.floor(n).toLocaleString('en-US');}
+function gradient(color){var map={yellow:'linear-gradient(145deg,#fff1a6,#ffc83a 55%,#c98a00)',orange:'linear-gradient(145deg,#ffc49a,#ff8a3d 55%,#c9500c)',sky:'linear-gradient(145deg,#cdf1ff,#4fc3f7 55%,#1a72b5)',purple:'linear-gradient(145deg,#e0cfff,#a06bf0 55%,#5a2cae)',green:'linear-gradient(145deg,#c8f8dc,#4fd68a 55%,#1e8a4f)',pink:'linear-gradient(145deg,#ffcbe6,#ff6fb0 55%,#bd2b78)'};return map[color]||map.yellow;}
+function buildBoard(){var frag=document.createDocumentFragment();boardCells=[];for(var r=0;r<SIZE;r++)for(var c=0;c<SIZE;c++){var cell=document.createElement('div');cell.className='board-cell';cell.dataset.row=r;cell.dataset.col=c;cell.setAttribute('role','gridcell');frag.appendChild(cell);boardCells.push(cell);}boardEl.replaceChildren(frag);}
+function renderBoard(){for(var r=0;r<SIZE;r++)for(var c=0;c<SIZE;c++){var el=boardCells[r*SIZE+c],color=state.board[r][c];el.classList.toggle('filled',!!color);el.style.setProperty('--cell-gradient',color?gradient(color):'none');}}
+function renderPieces(){var frag=document.createDocumentFragment();state.pieces.forEach(function(shape,index){var slot=document.createElement('div');slot.className='piece-slot'+(!shape?' used':'');slot.dataset.index=index;if(shape){var w=Math.max.apply(null,shape.cells.map(function(p){return p[0];}))+1,h=Math.max.apply(null,shape.cells.map(function(p){return p[1];}))+1,grid=document.createElement('div');grid.className='piece-shape';grid.style.gridTemplateColumns='repeat('+w+',var(--piece-unit))';grid.style.gridTemplateRows='repeat('+h+',var(--piece-unit))';for(var y=0;y<h;y++)for(var x=0;x<w;x++){var el=document.createElement('span'),has=shape.cells.some(function(p){return p[0]===x&&p[1]===y;});el.className='piece-cell'+(has?'':' empty');if(has)el.style.setProperty('--piece-gradient',gradient(shape.color));grid.appendChild(el);}slot.appendChild(grid);}frag.appendChild(slot);});trayEl.replaceChildren(frag);}
+function updateStats(){scoreEl.textContent=fmt(state.score);bestEl.textContent=fmt(BM.storage.state.best);}
+function save(){BM.storage.saveGame({version:2,board:state.board,score:state.score,pieces:state.pieces,ended:state.ended,rewarded:state.rewarded});}
+function render(){renderBoard();renderPieces();updateStats();}
+function showMessage(text){if(!messageEl)return;messageEl.textContent=text;messageEl.classList.remove('show');messageEl.offsetWidth;messageEl.classList.add('show');}
+function newRound(){state={board:BM.board.empty(),pieces:BM.pieces.generate(BM.board.empty()),score:0,ended:false,rewarded:false,animating:false};render();save();document.getElementById('gameover-modal').hidden=true;}
+function updateBest(){if(BM.storage.setBest(state.score))showMessage('NEW BEST!');}
+function placePiece(index,row,col){
+  if(state.ended||state.animating)return;
+  var shape=state.pieces[index];if(!shape||!BM.board.canPlace(state.board,shape,row,col))return;
+  state.board=BM.board.place(state.board,shape,row,col,shape.color);state.score+=BM.scoring.placement(shape.cells.length);state.pieces[index]=null;BM.audio.place();
+  var lines=BM.board.findCompleted(state.board),hasClear=lines.rows.length>0||lines.cols.length>0;
+  if(state.pieces.every(function(p){return p===null;}))state.pieces=BM.pieces.generate(state.board);
+  if(hasClear){
+    var count=lines.rows.length+lines.cols.length,cleared=BM.board.clearLines(state.board,lines),indexes=Object.keys(cleared.cells);
+    indexes.forEach(function(key){var rc=key.split(':').map(Number),el=boardCells[rc[0]*SIZE+rc[1]];if(el)el.classList.add('clearing');});
+    state.board=cleared.board;state.score+=BM.scoring.clearBonus(lines);if(count>1)state.score+=50*(count-1);state.animating=true;BM.audio.clear();showMessage(count>1?'COMBO x'+count:'NICE!');
+    updateBest();renderPieces();updateStats();save();
+    window.setTimeout(function(){state.animating=false;renderBoard();updateStats();save();if(!BM.board.anyMove(state.board,state.pieces))endRound();},220);
+  }else{updateBest();renderBoard();renderPieces();updateStats();save();if(!BM.board.anyMove(state.board,state.pieces))endRound();}
+}
+function endRound(){if(state.ended)return;state.ended=true;var reward=BM.rewards.forScore(state.score);if(!state.rewarded){BM.storage.addCoins(reward);state.rewarded=true;}BM.storage.clearGame();BM.storage.setBest(state.score);document.getElementById('final-score').textContent=fmt(state.score);document.getElementById('final-best').textContent=fmt(BM.storage.state.best);document.getElementById('final-reward').textContent='+'+fmt(reward);document.getElementById('gameover-modal').hidden=false;BM.audio.gameover();}
+function restore(){var saved=BM.storage.state.game;if(saved&&saved.version===2&&Array.isArray(saved.board)&&saved.board.length===SIZE&&saved.board.every(function(row){return Array.isArray(row)&&row.length===SIZE;})&&Array.isArray(saved.pieces)&&saved.pieces.length===3){state={board:saved.board,score:Number(saved.score)||0,pieces:saved.pieces,ended:false,rewarded:false,animating:false};}else{BM.storage.clearGame();state={board:BM.board.empty(),pieces:BM.pieces.generate(BM.board.empty()),score:0,ended:false,rewarded:false,animating:false};save();}}
+function init(){boardEl=document.getElementById('game-board');trayEl=document.getElementById('piece-tray');scoreEl=document.getElementById('score-value');bestEl=document.getElementById('best-value');messageEl=document.getElementById('board-message');buildBoard();restore();render();document.getElementById('retry-btn').addEventListener('click',newRound);document.getElementById('result-home-btn').addEventListener('click',function(){document.getElementById('gameover-modal').hidden=true;window.location.hash='home';});}
+BM.game={init:init,newRound:newRound,placePiece:placePiece,gradient:gradient,getCell:function(r,c){return boardCells[r*SIZE+c]||null;},pause:function(){}};Object.defineProperty(BM.game,'state',{get:function(){return state;}});
+})(window.BlockMaster=window.BlockMaster||{});

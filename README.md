@@ -6,9 +6,11 @@ A mobile-first block puzzle game built with HTML, CSS and vanilla JavaScript.
 Open `index.html` in a browser. For PWA/service-worker testing, serve the folder through a local static HTTP server or GitHub Pages (service workers do not run on `file://`).
 
 ## Gameplay
-- 10×10 board.
+- 8×8 board.
 - Three pieces per set.
-- Drag pieces onto the board using touch or mouse.
+- Drag pieces onto the board using touch or mouse, with the grabbed block aligned to the target cell.
+- The board and piece tray use larger cells sized for an 8×8 layout.
+- Board cells are created once and updated in place; drag previews update only the affected cells.
 - Complete rows and columns to clear them.
 - +5 points per placed block.
 - Line-clear bonuses and a reward at game over.
