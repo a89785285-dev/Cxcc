@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07124f"/>
+      <stop offset="0.55" stop-color="#063de0"/>
+      <stop offset="1" stop-color="#020b35"/>
+    </linearGradient>
+    <radialGradient id="glow"><stop stop-color="#00c8ff" stop-opacity=".75"/><stop offset="1" stop-color="#004bff" stop-opacity="0"/></radialGradient>
+    <linearGradient id="gold" x2="0" y2="1"><stop stop-color="#fff66b"/><stop offset=".48" stop-color="#ffc400"/><stop offset="1" stop-color="#f07800"/></linearGradient>
+    <linearGradient id="orange" x2="0" y2="1"><stop stop-color="#ffe27a"/><stop offset=".5" stop-color="#ff7900"/><stop offset="1" stop-color="#e52a00"/></linearGradient>
+    <linearGradient id="cyan" x2="0" y2="1"><stop stop-color="#a8ffff"/><stop offset=".48" stop-color="#00d8ff"/><stop offset="1" stop-color="#0054e8"/></linearGradient>
+    <linearGradient id="purple" x2="0" y2="1"><stop stop-color="#ffb8ff"/><stop offset=".5" stop-color="#e000ff"/><stop offset="1" stop-color="#6400d9"/></linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%"><feGaussianBlur in="SourceAlpha" stdDeviation="22"/><feOffset dy="24"/><feComponentTransfer><feFuncA type="linear" slope=".6"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="1024" height="1024" rx="190" fill="url(#bg)"/>
+  <circle cx="512" cy="500" r="500" fill="url(#glow)"/>
+  <g opacity=".13" stroke="#7ceaff" stroke-width="18">
+    <path d="M512 0V1024M0 512H1024M150 150L874 874M874 150L150 874"/>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="132" y="142" width="350" height="350" rx="82" fill="url(#gold)" stroke="#ffe95b" stroke-width="13"/>
+    <rect x="542" y="142" width="350" height="350" rx="82" fill="url(#orange)" stroke="#ffd06a" stroke-width="13"/>
+    <rect x="132" y="552" width="350" height="350" rx="82" fill="url(#cyan)" stroke="#8affff" stroke-width="13"/>
+    <rect x="542" y="552" width="350" height="350" rx="82" fill="url(#purple)" stroke="#ffbaff" stroke-width="13"/>
+  </g>
+  <g fill="none" stroke="#fff" stroke-width="20" stroke-linecap="round" opacity=".72">
+    <path d="M205 210Q225 178 270 178H352"/>
+    <path d="M615 210Q635 178 680 178H762"/>
+    <path d="M205 620Q225 588 270 588H352"/>
+    <path d="M615 620Q635 588 680 588H762"/>
+  </g>
+</svg>

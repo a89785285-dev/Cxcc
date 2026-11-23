@@ -1,29 +1,25 @@
 # BLOCK MASTER
 
-A mobile-first block puzzle game built with HTML, CSS and vanilla JavaScript.
+لعبة ألغاز مكعبات مبنية بـ HTML5 وCSS3 وJavaScript. تم تجهيز تغليف Android باستخدام Capacitor مع الحفاظ على ملفات اللعبة وآلياتها دون إعادة تطويرها.
 
-## Run locally
-Open `index.html` in a browser. For PWA/service-worker testing, serve the folder through a local static HTTP server or GitHub Pages (service workers do not run on `file://`).
+## بناء APK عبر GitHub (من الهاتف أو الحاسوب)
 
-## Gameplay
-- 8×8 board.
-- Three pieces per set.
-- Drag pieces onto the board using touch or mouse, with the grabbed block aligned to the target cell.
-- The board and piece tray use larger cells sized for an 8×8 layout.
-- Board cells are created once and updated in place; drag previews update only the affected cells.
-- Complete rows and columns to clear them.
-- +5 points per placed block.
-- Line-clear bonuses and a reward at game over.
-- Best score and settings are stored in LocalStorage.
+1. افتح تبويب **Actions** في المستودع.
+2. اختر **Build Android APK**.
+3. اضغط **Run workflow** وانتظر انتهاء البناء بنجاح.
+4. افتح عملية البناء المكتملة، ثم نزّل **BLOCK-MASTER-APK** من قسم **Artifacts**.
+5. فك ضغط الملف للحصول على `app-debug.apk` وانقله إلى هاتف Android.
 
-## Project structure
-- `js/board.js`: board rules and line clearing.
-- `js/pieces.js`: piece library and generation.
-- `js/drag-drop.js`: pointer-based drag and drop.
-- `js/scoring.js`: points.
-- `js/rewards.js`: end-of-round reward.
-- `js/storage.js`: persistent data.
-- `js/game.js`: game state and rendering.
+## ملاحظات
 
-## Notes
-The reward is stored as a separate local coin balance; no shop or coin counter is currently included in the interface. Audio cues are synthesized with Web Audio and are intentionally simple. The Music setting is stored but no background music track is bundled.
+- يتم توليد أيقونات Android وPWA تلقائياً من `resources/icon.svg` أثناء البناء.
+- الناتج APK تجريبي من نوع debug للتثبيت والاختبار، وليس إصداراً جاهزاً للنشر على Google Play.
+- لا يحتوي المستودع على APK مبني مسبقاً؛ يتم إنشاؤه بواسطة GitHub Actions.
+
+## البناء المحلي للويب
+
+```bash
+npm install
+npm run generate:icons
+npm run build:web
+```
