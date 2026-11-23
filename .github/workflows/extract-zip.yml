@@ -1,0 +1,74 @@
+name: Extract ZIP Automatically
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "*.zip"
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract ZIP
+        run: |
+          python3 -c '
+          import zipfile, pathlib, shutil
+
+          root = pathlib.Path(".")
+          files = list(root.glob("*.zip"))
+
+          if not files:
+              raise SystemExit("No ZIP file found")
+
+          for archive in files:
+              temp = pathlib.Path("_temp_extract")
+              temp.mkdir(exist_ok=True)
+
+              with zipfile.ZipFile(archive) as z:
+                  for item in z.infolist():
+                      p = pathlib.PurePosixPath(item.filename)
+                      if p.is_absolute() or ".." in p.parts:
+                          raise ValueError("Unsafe ZIP path")
+
+                      parts = p.parts
+                      if parts and parts[0] == "BLOCK-MASTER":
+                          parts = parts[1:]
+                      if not parts:
+                          continue
+
+                      target = temp.joinpath(*parts)
+                      if item.is_dir():
+                          target.mkdir(parents=True, exist_ok=True)
+                      else:
+                          target.parent.mkdir(parents=True, exist_ok=True)
+                          with z.open(item) as src, open(target, "wb") as dst:
+                              shutil.copyfileobj(src, dst)
+
+              for item in temp.iterdir():
+                  dest = root / item.name
+                  if item.is_dir():
+                      shutil.copytree(item, dest, dirs_exist_ok=True)
+                  else:
+                      shutil.copy2(item, dest)
+
+              shutil.rmtree(temp)
+              archive.unlink()
+          '
+
+      - name: Commit extracted files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Extract project ZIP"
+            git push
+          fi
