@@ -1,0 +1,67 @@
+/* ==========================================================
+   responsive.css — Mobile first, then larger screens
+   ========================================================== */
+
+/* Small phones (up to 359px wide): keep the button inside the screen */
+@media (max-width: 359px) {
+  .btn-classic {
+    min-width: 80vw;
+    height: 66px;
+  }
+}
+
+/* Tablets and desktops: larger logo and button, centered column */
+@media (min-width: 768px) {
+  .home {
+    padding-top: calc(var(--safe-top) + 48px);
+  }
+
+  .logo__title {
+    font-size: clamp(3.5rem, 7vw, 5.5rem);
+  }
+
+  .btn-classic {
+    min-width: 300px;
+    height: 80px;
+    font-size: 1.75rem;
+  }
+}
+
+/* Short landscape phones: shrink the stack so nothing is cut off */
+@media (max-height: 520px) and (orientation: landscape) {
+  .home {
+    padding-top: calc(var(--safe-top) + 12px);
+    padding-bottom: calc(var(--safe-bottom) + 12px);
+  }
+
+  .home__stage {
+    gap: 16px;
+  }
+
+  .logo {
+    gap: 2px;
+  }
+
+  .logo__crown {
+    width: 32px;
+    margin-bottom: 0;
+  }
+
+  .logo__title {
+    font-size: clamp(1.8rem, 11vh, 2.6rem);
+  }
+
+  .logo__puzzle {
+    font-size: .85rem;
+  }
+
+  .btn-classic {
+    min-width: 240px;
+    height: 56px;
+    font-size: 1.15rem;
+  }
+}
+
+/* Gameplay responsive refinements */
+@media(max-width:380px){.game-layout{padding-left:10px;padding-right:10px}.board{gap:2px;padding:5px}.piece-cell{width:clamp(13px,3.8vw,18px);height:clamp(13px,3.8vw,18px)}.stat-card{padding:6px 7px}}
+@media(max-height:520px) and (orientation:landscape){.game-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,220px);grid-template-rows:auto 1fr auto;gap:6px;padding:8px 14px}.game-header{grid-column:1/-1;grid-row:1;max-width:none}.board-wrap{grid-column:1;grid-row:2;width:min(70vh,calc(100vw - 260px));max-height:calc(100vh - 90px)}.tray-section{grid-column:2;grid-row:2;min-height:0}.piece-tray{grid-template-columns:1fr;gap:6px}.piece-slot{height:clamp(54px,18vh,76px)}.game-footer{grid-column:1/-1;grid-row:3}}
