@@ -10,14 +10,40 @@ function createGhost(shape){
 function init(){
   var tray=document.getElementById('piece-tray'),boardEl=document.getElementById('game-board');if(!tray||!boardEl)return;
   var drag=null,raf=0,previewCells=[],SIZE=BM.board.SIZE;
-  function clearPreview(){for(var i=0;i<previewCells.length;i++)previewCells[i].classList.remove('preview-valid','preview-invalid');previewCells.length=0;}
-  function boardPosition(x,y){
+  function measureBoard(){
     var rect=boardEl.getBoundingClientRect(),cs=getComputedStyle(boardEl),border=parseFloat(cs.borderLeftWidth)||0,pad=parseFloat(cs.paddingLeft)||0,gap=parseFloat(cs.columnGap)||0;
     var left=rect.left+border+pad,top=rect.top+border+pad,contentW=rect.width-border*2-pad*2,contentH=rect.height-border*2-pad*2;
-    var cellW=(contentW-gap*(SIZE-1))/SIZE,cellH=(contentH-gap*(SIZE-1))/SIZE;
-    var col=Math.floor((x-left)/(cellW+gap)),row=Math.floor((y-top)/(cellH+gap));
-    var inside=x>=left&&y>=top&&x<left+contentW&&y<top+contentH;
-    return {row:row,col:col,inside:inside,left:left,top:top,cellW:cellW,cellH:cellH,gap:gap};
+    return {left:left,top:top,contentW:contentW,contentH:contentH,cellW:(contentW-gap*(SIZE-1))/SIZE,cellH:(contentH-gap*(SIZE-1))/SIZE,gap:gap};
+  }
+  function boardPosition(x,y,m){
+    var col=Math.floor((x-m.left)/(m.cellW+m.gap)),row=Math.floor((y-m.top)/(m.cellH+m.gap));
+    return {row:row,col:col,inside:x>=m.left&&y>=m.top&&x<m.left+m.contentW&&y<m.top+m.contentH};
+  }
+  function clearPreview(){
+    for(var i=0;i<previewCells.length;i++)previewCells[i].classList.remove('preview-valid','preview-invalid');
+    previewCells.length=0;
+  }
+  function updatePreview(row,col,valid){
+    var next=[],nextSet=Object.create(null),className=valid?'preview-valid':'preview-invalid';
+    drag.shape.cells.forEach(function(p){
+      var r=row+p[1],c=col+p[0];
+      if(r>=0&&r<SIZE&&c>=0&&c<SIZE){
+        var el=BM.game.getCell(r,c);
+        if(el){next.push(el);nextSet[r*SIZE+c]=true;}
+      }
+    });
+    for(var i=0;i<previewCells.length;i++){
+      var old=previewCells[i],key=Number(old.dataset.row)*SIZE+Number(old.dataset.col);
+      if(!nextSet[key])old.classList.remove('preview-valid','preview-invalid');
+    }
+    for(var j=0;j<next.length;j++){
+      var cell=next[j],wasPresent=previewCells.indexOf(cell)!==-1;
+      if(!wasPresent||drag.previewClass!==className){
+        cell.classList.remove(className==='preview-valid'?'preview-invalid':'preview-valid');
+        cell.classList.add(className);
+      }
+    }
+    previewCells=next;drag.previewClass=className;
   }
   function findGrabCell(shape,slot,e){
     var grid=slot.querySelector('.piece-shape'),rect=grid.getBoundingClientRect(),cs=getComputedStyle(grid),gap=parseFloat(cs.gap)||0;
@@ -28,10 +54,14 @@ function init(){
   }
   function updateDrag(x,y){
     if(!drag)return;
-    var pos=boardPosition(x,y),originRow=pos.row-drag.grab.y,originCol=pos.col-drag.grab.x;
-    drag.pos={row:originRow,col:originCol};drag.valid=pos.inside&&BM.board.canPlace(BM.game.state.board,drag.shape,originRow,originCol);
-    clearPreview();
-    drag.shape.cells.forEach(function(p){var r=originRow+p[1],c=originCol+p[0];if(r>=0&&r<SIZE&&c>=0&&c<SIZE){var el=BM.game.getCell(r,c);if(el){el.classList.add(drag.valid?'preview-valid':'preview-invalid');previewCells.push(el);}}});
+    var pos=boardPosition(x,y,drag.metrics),originRow=pos.row-drag.grab.y,originCol=pos.col-drag.grab.x;
+    var changed=originRow!==drag.lastRow||originCol!==drag.lastCol||pos.inside!==drag.lastInside;
+    drag.pos={row:originRow,col:originCol};
+    if(changed){
+      drag.valid=pos.inside&&BM.board.canPlace(BM.game.state.board,drag.shape,originRow,originCol);
+      updatePreview(originRow,originCol,drag.valid);
+      drag.lastRow=originRow;drag.lastCol=originCol;drag.lastInside=pos.inside;
+    }
     var ghostUnit=drag.ghostUnit,pitch=ghostUnit+drag.ghostGap;
     drag.ghost.style.transform='translate3d('+(x-drag.grab.x*pitch-ghostUnit/2)+'px,'+(y-drag.grab.y*pitch-ghostUnit/2)+'px,0)';
   }
@@ -39,12 +69,20 @@ function init(){
     var slot=e.target.closest('.piece-slot');if(!slot||slot.classList.contains('used')||BM.game.state.animating||BM.game.state.ended)return;
     var idx=Number(slot.dataset.index),shape=BM.game.state.pieces[idx];if(!shape)return;
     e.preventDefault();var grab=findGrabCell(shape,slot,e),ghost=createGhost(shape);document.body.appendChild(ghost);
-    drag={idx:idx,shape:shape,slot:slot,ghost:ghost,pointerId:e.pointerId,grab:grab,valid:false,pos:null,ghostUnit:Math.max(30,grab.unit*1.25),ghostGap:Math.max(3,grab.gap)};
+    drag={idx:idx,shape:shape,slot:slot,ghost:ghost,pointerId:e.pointerId,grab:grab,valid:false,pos:null,metrics:measureBoard(),lastRow:null,lastCol:null,lastInside:null,previewClass:null,ghostUnit:Math.max(30,grab.unit*1.25),ghostGap:Math.max(3,grab.gap)};
     ghost.style.setProperty('--drag-piece-unit',drag.ghostUnit+'px');slot.classList.add('dragging');updateDrag(e.clientX,e.clientY);
   },{passive:false});
+  window.addEventListener('resize',function(){if(drag)drag.metrics=measureBoard();},{passive:true});
   window.addEventListener('pointermove',function(e){if(!drag||e.pointerId!==drag.pointerId)return;drag.x=e.clientX;drag.y=e.clientY;if(!raf)raf=requestAnimationFrame(function(){raf=0;if(drag)updateDrag(drag.x,drag.y);});},{passive:true});
-  function finish(e,cancelled){if(!drag||e.pointerId!==drag.pointerId)return;if(raf){cancelAnimationFrame(raf);raf=0;}if(!cancelled)updateDrag(e.clientX,e.clientY);var current=drag;clearPreview();current.ghost.remove();current.slot.classList.remove('dragging');drag=null;if(!cancelled&&current.valid&&current.pos)BM.game.placePiece(current.idx,current.pos.row,current.pos.col);}
-  window.addEventListener('pointerup',function(e){finish(e,false);});window.addEventListener('pointercancel',function(e){finish(e,true);});
+  function finish(e,cancelled){
+    if(!drag||e.pointerId!==drag.pointerId)return;
+    if(raf){cancelAnimationFrame(raf);raf=0;}
+    if(!cancelled)updateDrag(e.clientX,e.clientY);
+    var current=drag;clearPreview();current.ghost.remove();current.slot.classList.remove('dragging');drag=null;
+    if(!cancelled&&current.valid&&current.pos)BM.game.placePiece(current.idx,current.pos.row,current.pos.col);
+  }
+  window.addEventListener('pointerup',function(e){finish(e,false);});
+  window.addEventListener('pointercancel',function(e){finish(e,true);});
 }
 BM.dragDrop={init:init};
 })(window.BlockMaster=window.BlockMaster||{});
