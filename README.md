@@ -1,25 +1,22 @@
 # BLOCK MASTER
 
-لعبة ألغاز مكعبات مبنية بـ HTML5 وCSS3 وJavaScript. تم تجهيز تغليف Android باستخدام Capacitor مع الحفاظ على ملفات اللعبة وآلياتها دون إعادة تطويرها.
+BLOCK MASTER is moving from the Capacitor wrapper to a native Android application built with Kotlin and Android Canvas.
 
-## بناء APK عبر GitHub (من الهاتف أو الحاسوب)
+## Build the Android APK with GitHub
 
-1. افتح تبويب **Actions** في المستودع.
-2. اختر **Build Android APK**.
-3. اضغط **Run workflow** وانتظر انتهاء البناء بنجاح.
-4. افتح عملية البناء المكتملة، ثم نزّل **BLOCK-MASTER-APK** من قسم **Artifacts**.
-5. فك ضغط الملف للحصول على `app-debug.apk` وانقله إلى هاتف Android.
+1. Open the repository's **Actions** tab.
+2. Select **Build Native Android APK** on branch `migration/native-android-kotlin`.
+3. Run the workflow and wait for it to finish.
+4. Open the successful run and download **BLOCK-MASTER-NATIVE-APK** from Artifacts.
+5. Extract and install `app-debug.apk` on an Android device.
 
-## ملاحظات
+## Technology
 
-- يتم توليد أيقونات Android وPWA تلقائياً من `resources/icon.svg` أثناء البناء.
-- الناتج APK تجريبي من نوع debug للتثبيت والاختبار، وليس إصداراً جاهزاً للنشر على Google Play.
-- لا يحتوي المستودع على APK مبني مسبقاً؛ يتم إنشاؤه بواسطة GitHub Actions.
+- Native Android: Kotlin + Android Canvas.
+- No Capacitor and no WebView in the new Android app.
+- The original web/PWA source remains in the repository separately.
+- The native app implements the 8×8 board, three pieces per round, touch dragging, scoring, row/column clearing, and local best-score storage.
 
-## البناء المحلي للويب
+## Status
 
-```bash
-npm install
-npm run generate:icons
-npm run build:web
-```
+This is the first native migration pass. The GitHub Actions build and real-device gameplay/performance tests must pass before the migration is considered complete.
