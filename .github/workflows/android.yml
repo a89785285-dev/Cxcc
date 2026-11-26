@@ -1,7 +1,8 @@
-name: Build Android APK
+name: Build Native Android APK
 
 on:
   push:
+    branches: ["migration/native-android-kotlin"]
   workflow_dispatch:
 
 permissions:
@@ -9,64 +10,29 @@ permissions:
 
 jobs:
   apk:
-    name: Build BLOCK MASTER APK
+    name: Build BLOCK MASTER Native APK
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Checkout project
+      - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
-
-      - name: Install dependencies
-        run: npm install --no-audit --no-fund
-
-      - name: Generate application icons
-        run: npm run generate:icons
-
-      - name: Build web app
-        run: npm run build:web
-
-      - name: Add Android platform
-        run: npx cap add android
-
-      - name: Generate native Android launcher icons
-        run: npx @capacitor/assets generate --android --iconBackgroundColor '#2456e0' --iconBackgroundColorDark '#2456e0'
-
-      - name: Sync Capacitor project
-        run: npx cap sync android
-
-      - name: Set portrait orientation
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          manifest = Path('android/app/src/main/AndroidManifest.xml')
-          content = manifest.read_text()
-          marker = 'android:screenOrientation="portrait"'
-          if marker not in content:
-              content = content.replace('<activity ', '<activity android:screenOrientation="portrait" ', 1)
-          manifest.write_text(content)
-          PY
-
-      - name: Build debug APK
-        run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug
-
+          java-version: "17"
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+      - name: Build native APK
+        run: gradle assembleDebug
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: BLOCK-MASTER-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: BLOCK-MASTER-NATIVE-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
