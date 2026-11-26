@@ -1,9 +1,0 @@
-{
-  "appId": "com.blockmaster.game",
-  "appName": "BLOCK MASTER",
-  "webDir": "www",
-  "backgroundColor": "#040d2e",
-  "android": {
-    "allowMixedContent": false
-  }
-}
