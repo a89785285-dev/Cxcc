@@ -1,19 +1,13 @@
 {
   "name": "block-master",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "BLOCK MASTER Android wrapper using Capacitor",
+  "description": "BLOCK MASTER web PWA and native Kotlin Android game",
   "scripts": {
     "build:web": "node scripts/build-web.js",
     "generate:icons": "node scripts/generate-icons.js"
   },
-  "dependencies": {
-    "@capacitor/android": "^6.1.2",
-    "@capacitor/core": "^6.1.2"
-  },
   "devDependencies": {
-    "@capacitor/assets": "^3.0.5",
-    "@capacitor/cli": "^6.1.2",
     "sharp": "^0.33.5"
   }
 }
